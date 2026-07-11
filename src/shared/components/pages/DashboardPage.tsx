@@ -48,7 +48,7 @@ export function DashboardPage() {
         <Button asChild>
           <Link href="/ordens-venda/nova">
             <Plus className="size-4" />
-            Nova OV
+            Nova ordem de venda
           </Link>
         </Button>
       </div>
