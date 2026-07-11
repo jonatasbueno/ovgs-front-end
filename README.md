@@ -17,26 +17,30 @@ automaticamente em desenvolvimento — basta rodar o projeto e usar.
 # 1. Instalar dependências
 npm install
 
-# 2. Subir o ambiente de desenvolvimento (mock inicia automaticamente)
+# 2. Instalar o navegador do Playwright (obrigatório para testes E2E e git push)
+npm run test:e2e:install
+
+# 3. Subir o ambiente de desenvolvimento (mock inicia automaticamente)
 npm run dev
 # → http://localhost:3000
 ```
 
+> O `npm install` também tenta baixar o Chromium via `postinstall`. Se os testes E2E ou o hook de pre-push falharem com _Executable doesn't exist_, rode novamente o passo 2.
+
 ### Scripts disponíveis
 
-| Script               | Descrição                                 |
-| -------------------- | ----------------------------------------- |
-| `npm run dev`        | Ambiente de desenvolvimento com MSW ativo |
-| `npm run build`      | Build de produção                         |
-| `npm run start`      | Servir o build de produção                |
-| `npm run test`       | Testes unitários e de integração (Vitest) |
-| `npm run test:watch` | Testes em modo watch                      |
-| `npm run test:e2e`   | Teste E2E happy path (Playwright)¹        |
-| `npm run lint`       | ESLint (flat config)                      |
-| `npm run typecheck`  | Verificação de tipos (`tsc --noEmit`)     |
-| `npm run format`     | Formatação com Prettier                   |
-
-¹ Na primeira vez, instale o navegador: `npx playwright install chromium`.
+| Script                     | Descrição                                 |
+| -------------------------- | ----------------------------------------- |
+| `npm run dev`              | Ambiente de desenvolvimento com MSW ativo |
+| `npm run build`            | Build de produção                         |
+| `npm run start`            | Servir o build de produção                |
+| `npm run test`             | Testes unitários e de integração (Vitest) |
+| `npm run test:watch`       | Testes em modo watch                      |
+| `npm run test:e2e`         | Teste E2E happy path (Playwright)         |
+| `npm run test:e2e:install` | Instala o Chromium usado pelo Playwright  |
+| `npm run lint`             | ESLint (flat config)                      |
+| `npm run typecheck`        | Verificação de tipos (`tsc --noEmit`)     |
+| `npm run format`           | Formatação com Prettier                   |
 
 ---
 

@@ -52,64 +52,63 @@ export function TransportesPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Nova modalidade</CardTitle>
-            <CardDescription>Ex: Caminhão, Carreta, Bi-truck…</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FormProvider {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                noValidate
-                className="grid gap-4"
-              >
-                <FormInput<CriarTipoTransporteInput>
-                  name="descricao"
-                  label="Descrição"
-                  placeholder="Ex: Caminhão baú"
-                />
-                <Button type="submit" disabled={enviando}>
-                  {enviando ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Plus className="size-4" />
-                  )}
-                  Adicionar
-                </Button>
-              </form>
-            </FormProvider>
-          </CardContent>
-        </Card>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Nova modalidade</CardTitle>
+          <CardDescription>Ex: Caminhão, Carreta, Bi-truck…</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FormProvider {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              noValidate
+              className="flex w-full flex-col gap-4 sm:flex-row sm:items-end"
+            >
+              <FormInput<CriarTipoTransporteInput>
+                name="descricao"
+                label="Descrição"
+                placeholder="Ex: Caminhão baú"
+                className="w-full flex-1"
+              />
+              <Button type="submit" disabled={enviando} className="shrink-0">
+                {enviando ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Plus className="size-4" />
+                )}
+                Adicionar
+              </Button>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
 
-        {carregando ? (
-          <Skeleton className="h-48 w-full" />
-        ) : (
-          <div className="h-fit rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead className="text-right">ID</TableHead>
+      {carregando ? (
+        <Skeleton className="h-48 w-full" />
+      ) : (
+        <div className="w-full rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="text-right">ID</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tiposTransporte.map((tipo) => (
+                <TableRow key={tipo.id}>
+                  <TableCell className="font-medium">
+                    {tipo.descricao}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-right font-mono text-xs">
+                    {tipo.id.slice(-8).toUpperCase()}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tiposTransporte.map((tipo) => (
-                  <TableRow key={tipo.id}>
-                    <TableCell className="font-medium">
-                      {tipo.descricao}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-right font-mono text-xs">
-                      {tipo.id.slice(-8).toUpperCase()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

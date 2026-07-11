@@ -6,10 +6,11 @@ import type {
 import { clienteAutorizaTransporte } from "@/entities/cliente/model/clienteSchema";
 import type { CriarTipoTransporteInput } from "@/entities/tipo-transporte/model/tipoTransporteSchema";
 import type { CriarItemInput } from "@/entities/item/model/itemSchema";
-import type {
-  CriarOrdemVendaInput,
-  DadosAgendamento,
-  OrdemVenda,
+import {
+  ajustarAgendamentoNaEntrega,
+  type CriarOrdemVendaInput,
+  type DadosAgendamento,
+  type OrdemVenda,
 } from "@/entities/ordem-venda/model/ordemVendaSchema";
 import {
   podeTransicionar,
@@ -51,6 +52,42 @@ function registrarAuditoria(
 
 function erro(status: number, message: string) {
   return HttpResponse.json({ message }, { status });
+}
+
+function sincronizarEntregaOrdem(ordem: OrdemVenda): OrdemVenda {
+  if (
+    ordem.status !== "ENTREGUE" ||
+    ordem.entregueEm ||
+    !ordem.dadosAgendamento
+  ) {
+    return ordem;
+  }
+
+  const db = getDb();
+  const auditoriaEntrega = [...db.auditorias]
+    .filter(
+      (auditoria) =>
+        auditoria.entidadeAfetada === ordem.id &&
+        auditoria.tipoAcao === "ALTERACAO_STATUS" &&
+        auditoria.estadoPosterior?.status === "ENTREGUE",
+    )
+    .sort((a, b) => b.dataHora.localeCompare(a.dataHora))[0];
+
+  if (!auditoriaEntrega) return ordem;
+
+  const dataEntrega = new Date(auditoriaEntrega.dataHora);
+  const agendamentoAjustado = ajustarAgendamentoNaEntrega(
+    ordem.dadosAgendamento,
+    dataEntrega,
+  );
+
+  ordem.entregueEm = auditoriaEntrega.dataHora;
+  if (agendamentoAjustado) {
+    ordem.dadosAgendamento = agendamentoAjustado;
+  }
+  persistir();
+
+  return ordem;
 }
 
 export const handlers = [
@@ -143,7 +180,7 @@ export const handlers = [
 
     ordens.sort((a, b) => b.criadaEm.localeCompare(a.criadaEm));
 
-    return HttpResponse.json(ordens);
+    return HttpResponse.json(ordens.map(sincronizarEntregaOrdem));
   }),
 
   http.get(`${API}/ordens-venda/:id`, ({ params }) => {
@@ -151,7 +188,7 @@ export const handlers = [
 
     if (!ordem) return erro(404, "Ordem de venda não encontrada");
 
-    return HttpResponse.json(ordem);
+    return HttpResponse.json(sincronizarEntregaOrdem(ordem));
   }),
 
   http.post(`${API}/ordens-venda`, async ({ request }) => {
@@ -217,6 +254,33 @@ export const handlers = [
     const estadoAnterior = { status: ordem.status };
 
     ordem.status = novoStatus;
+
+    if (novoStatus === "ENTREGUE") {
+      const dataEntrega = new Date();
+      ordem.entregueEm = dataEntrega.toISOString();
+
+      if (ordem.dadosAgendamento) {
+        const agendamentoAnterior = ordem.dadosAgendamento;
+        const agendamentoAjustado = ajustarAgendamentoNaEntrega(
+          agendamentoAnterior,
+          dataEntrega,
+        );
+
+        if (
+          agendamentoAjustado &&
+          agendamentoAjustado.data !== agendamentoAnterior.data
+        ) {
+          ordem.dadosAgendamento = agendamentoAjustado;
+          registrarAuditoria(
+            "REAGENDAMENTO",
+            ordem.id,
+            { status: novoStatus, ...agendamentoAnterior },
+            { status: novoStatus, ...agendamentoAjustado },
+          );
+        }
+      }
+    }
+
     persistir();
     registrarAuditoria("ALTERACAO_STATUS", ordem.id, estadoAnterior, {
       status: novoStatus,

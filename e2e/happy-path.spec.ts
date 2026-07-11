@@ -43,10 +43,17 @@ test("cria cliente, cria OV e avança o fluxo até Entregue", async ({
   await expect(botaoAvancarAgendada).toBeDisabled();
 
   await page.getByRole("button", { name: "Agendar entrega" }).click();
-  const amanha = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 10);
-  await page.getByLabel("Data da entrega").fill(amanha);
+  const amanha = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await page.getByLabel("Data da entrega").click();
+  await page
+    .getByRole("button", {
+      name: new Intl.DateTimeFormat("pt-BR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(amanha),
+    })
+    .click();
   await page.getByRole("combobox", { name: "Janela de atendimento" }).click();
   await page.getByRole("option", { name: /Manhã/ }).click();
   await page.getByRole("button", { name: "Confirmar agendamento" }).click();

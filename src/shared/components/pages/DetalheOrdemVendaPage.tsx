@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CalendarClock, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  ChevronRight,
+  PartyPopper,
+} from "lucide-react";
 import {
   useOrdemVenda,
   STATUS_LABELS,
-  JANELA_LABELS,
+  formatarAgendamentoOrdem,
 } from "@/entities/ordem-venda";
 import { useCliente } from "@/entities/cliente";
 import { useTiposTransporte } from "@/entities/tipo-transporte";
@@ -129,8 +134,9 @@ export function DetalheOrdemVendaPage({ id }: DetalheOrdemVendaPageProps) {
               </Button>
             )}
             {!statusSeguinte && (
-              <p className="text-muted-foreground text-sm">
-                Esta OV concluiu o fluxo operacional. 🎉
+              <p className="text-muted-foreground flex items-center gap-2 text-sm">
+                <PartyPopper className="size-4 shrink-0" aria-hidden />
+                Esta OV concluiu o fluxo operacional.
               </p>
             )}
           </div>
@@ -161,11 +167,15 @@ export function DetalheOrdemVendaPage({ id }: DetalheOrdemVendaPageProps) {
                 {transporte?.descricao ?? "—"}
               </span>
             </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-muted-foreground">Status</span>
+              <BadgeStatus status={ordem.status} />
+            </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Agendamento</span>
               <span className="font-medium">
                 {ordem.dadosAgendamento
-                  ? `${ordem.dadosAgendamento.data.split("-").reverse().join("/")} · ${JANELA_LABELS[ordem.dadosAgendamento.janela]}`
+                  ? formatarAgendamentoOrdem(ordem)
                   : "Não agendada"}
               </span>
             </div>

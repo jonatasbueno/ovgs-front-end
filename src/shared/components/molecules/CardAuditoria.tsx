@@ -2,6 +2,10 @@ import {
   TIPO_ACAO_LABELS,
   type Auditoria,
 } from "@/entities/auditoria/model/auditoriaSchema";
+import {
+  STATUS_LABELS,
+  statusOrdemVendaSchema,
+} from "@/entities/ordem-venda/model/statusOrdemVenda";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 
@@ -16,10 +20,19 @@ function formatarDataHora(iso: string): string {
   }).format(new Date(iso));
 }
 
+function formatarValorEstado(chave: string, valor: unknown): string {
+  if (chave === "status" && typeof valor === "string") {
+    const parsed = statusOrdemVendaSchema.safeParse(valor);
+    if (parsed.success) return STATUS_LABELS[parsed.data];
+  }
+
+  return String(valor).replace(/_/g, " ");
+}
+
 function resumoEstado(estado?: Record<string, unknown>): string | null {
   if (!estado) return null;
   return Object.entries(estado)
-    .map(([chave, valor]) => `${chave}: ${String(valor)}`)
+    .map(([chave, valor]) => `${chave}: ${formatarValorEstado(chave, valor)}`)
     .join(" · ");
 }
 

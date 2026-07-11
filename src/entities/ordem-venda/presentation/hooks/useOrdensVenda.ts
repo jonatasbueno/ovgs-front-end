@@ -47,6 +47,21 @@ function useInvalidarOrdens() {
   };
 }
 
+function useAtualizarCacheOrdem() {
+  const queryClient = useQueryClient();
+  return (ordem: OrdemVenda) => {
+    queryClient.setQueryData(ordemVendaKeys.detail(ordem.id), ordem);
+    queryClient.setQueriesData<OrdemVenda[]>(
+      {
+        queryKey: ordemVendaKeys.all,
+        predicate: (query) => query.queryKey[1] === "list",
+      },
+      (ordens) =>
+        ordens?.map((ov) => (ov.id === ordem.id ? ordem : ov)) ?? ordens,
+    );
+  };
+}
+
 export function useCriarOrdemVenda() {
   const invalidar = useInvalidarOrdens();
   return useMutation({
@@ -57,6 +72,7 @@ export function useCriarOrdemVenda() {
 
 export function useAvancarStatus() {
   const invalidar = useInvalidarOrdens();
+  const atualizarCache = useAtualizarCacheOrdem();
   return useMutation({
     mutationFn: ({
       ordem,
@@ -65,15 +81,22 @@ export function useAvancarStatus() {
       ordem: Pick<OrdemVenda, "id" | "status">;
       novoStatus: StatusOrdemVenda;
     }) => executeAvancarStatus(ordem, novoStatus),
-    onSuccess: invalidar,
+    onSuccess: (ordemAtualizada) => {
+      atualizarCache(ordemAtualizada);
+      invalidar();
+    },
   });
 }
 
 export function useAgendarEntrega() {
   const invalidar = useInvalidarOrdens();
+  const atualizarCache = useAtualizarCacheOrdem();
   return useMutation({
     mutationFn: ({ id, dados }: { id: string; dados: DadosAgendamento }) =>
       executeAgendarEntrega(id, dados),
-    onSuccess: invalidar,
+    onSuccess: (ordemAtualizada) => {
+      atualizarCache(ordemAtualizada);
+      invalidar();
+    },
   });
 }

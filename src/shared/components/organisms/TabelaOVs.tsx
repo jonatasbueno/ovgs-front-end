@@ -2,11 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import type {
-  JanelaAtendimento,
-  OrdemVenda,
-} from "@/entities/ordem-venda/model/ordemVendaSchema";
-import { JANELA_LABELS } from "@/entities/ordem-venda/model/ordemVendaSchema";
+import type { OrdemVenda } from "@/entities/ordem-venda/model/ordemVendaSchema";
+import { formatarAgendamentoOrdem } from "@/entities/ordem-venda/model/ordemVendaSchema";
 import { BadgeStatus } from "@/shared/components/atoms/BadgeStatus";
 import { Button } from "@/shared/components/ui/button";
 import { Skeleton } from "@/shared/components/ui/skeleton";
@@ -26,25 +23,10 @@ interface TabelaOVsProps {
   carregando?: boolean;
 }
 
-const JANELA_LABELS_CURTAS: Record<JanelaAtendimento, string> = {
-  MANHA: "Manhã",
-  TARDE: "Tarde",
-  NOITE: "Noite",
-};
-
 function formatarData(iso: string): string {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(
     new Date(iso),
   );
-}
-
-function formatarAgendamento(ordem: OrdemVenda, curta = false): string {
-  if (!ordem.dadosAgendamento) return "—";
-  const [ano, mes, dia] = ordem.dadosAgendamento.data.split("-");
-  const janela = curta
-    ? JANELA_LABELS_CURTAS[ordem.dadosAgendamento.janela]
-    : JANELA_LABELS[ordem.dadosAgendamento.janela];
-  return `${dia}/${mes}/${ano} · ${janela}`;
 }
 
 function LinhaVazia() {
@@ -121,10 +103,10 @@ export function TabelaOVs({
                 </TableCell>
                 <TableCell className="text-sm">
                   <span className="max-[1174px]:hidden">
-                    {formatarAgendamento(ordem)}
+                    {formatarAgendamentoOrdem(ordem)}
                   </span>
                   <span className="hidden max-[1174px]:inline">
-                    {formatarAgendamento(ordem, true)}
+                    {formatarAgendamentoOrdem(ordem, true)}
                   </span>
                 </TableCell>
                 <TableCell className="text-sm">
@@ -172,10 +154,6 @@ export function TabelaOVs({
               </Button>
             </div>
 
-            <div className="flex justify-center">
-              <BadgeStatus status={ordem.status} />
-            </div>
-
             <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
               <div>
                 <dt className="text-muted-foreground text-xs">Transporte</dt>
@@ -189,16 +167,22 @@ export function TabelaOVs({
                 <dt className="text-muted-foreground text-xs">Agendamento</dt>
                 <dd>
                   <span className="max-[1174px]:hidden">
-                    {formatarAgendamento(ordem)}
+                    {formatarAgendamentoOrdem(ordem)}
                   </span>
                   <span className="hidden max-[1174px]:inline">
-                    {formatarAgendamento(ordem, true)}
+                    {formatarAgendamentoOrdem(ordem, true)}
                   </span>
                 </dd>
               </div>
               <div>
                 <dt className="text-muted-foreground text-xs">Criada em</dt>
                 <dd>{formatarData(ordem.criadaEm)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground text-xs">Status</dt>
+                <dd className="flex justify-center">
+                  <BadgeStatus status={ordem.status} />
+                </dd>
               </div>
             </dl>
           </article>

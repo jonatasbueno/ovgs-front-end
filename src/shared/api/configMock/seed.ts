@@ -127,6 +127,7 @@ export function criarSeed(): MockDb {
         itensIds: [ITEM_MADEIRA],
         status: "ENTREGUE",
         dadosAgendamento: { data: emDias(-2), janela: "NOITE" },
+        entregueEm: diasAtras(2),
         criadaEm: diasAtras(9),
       },
     ],

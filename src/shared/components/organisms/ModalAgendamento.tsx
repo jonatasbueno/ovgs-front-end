@@ -10,7 +10,7 @@ import {
   JANELAS_ATENDIMENTO,
   type DadosAgendamento,
 } from "@/entities/ordem-venda/model/ordemVendaSchema";
-import { FormInput } from "@/shared/components/atoms/FormInput";
+import { FormDatePicker } from "@/shared/components/atoms/FormDatePicker";
 import { FormSelect } from "@/shared/components/atoms/FormSelect";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -75,10 +75,10 @@ export function ModalAgendamento({
             noValidate
             className="grid gap-4"
           >
-            <FormInput<DadosAgendamento>
+            <FormDatePicker<DadosAgendamento>
               name="data"
               label="Data da entrega"
-              type="date"
+              placeholder="Selecionar data"
             />
             <FormSelect<DadosAgendamento>
               name="janela"

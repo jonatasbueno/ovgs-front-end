@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { CalendarClock, ExternalLink } from "lucide-react";
 import {
-  JANELA_LABELS,
+  formatarAgendamentoOrdem,
   useOrdensVenda,
   type OrdemVenda,
 } from "@/entities/ordem-venda";
@@ -88,11 +88,7 @@ export function AgendamentosPage() {
                 {ordem.dadosAgendamento && (
                   <p className="text-sm">
                     <CalendarClock className="mr-1 inline size-3.5" />
-                    {ordem.dadosAgendamento.data
-                      .split("-")
-                      .reverse()
-                      .join("/")}{" "}
-                    · {JANELA_LABELS[ordem.dadosAgendamento.janela]}
+                    {formatarAgendamentoOrdem(ordem)}
                   </p>
                 )}
               </div>

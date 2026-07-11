@@ -73,86 +73,89 @@ export function ItensPage() {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Novo item</CardTitle>
-            <CardDescription>
-              Peso e volume são opcionais, mas enriquecem a visualização.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FormProvider {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                noValidate
-                className="grid gap-4"
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Novo item</CardTitle>
+          <CardDescription>
+            Peso e volume são opcionais, mas enriquecem a visualização.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FormProvider {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              noValidate
+              className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto]"
+            >
+              <FormInput<ItemFormValues>
+                name="descricao"
+                label="Descrição"
+                placeholder="Ex: Palete de bebidas"
+                className="sm:col-span-2 lg:col-span-1"
+              />
+              <FormInput<ItemFormValues>
+                name="pesoKg"
+                label="Peso (kg)"
+                inputMode="decimal"
+                placeholder="Opcional"
+              />
+              <FormInput<ItemFormValues>
+                name="volumeM3"
+                label="Volume (m³)"
+                inputMode="decimal"
+                placeholder="Opcional"
+              />
+              <Button
+                type="submit"
+                disabled={enviando}
+                className="sm:col-span-2 lg:col-span-1 lg:self-end"
               >
-                <FormInput<ItemFormValues>
-                  name="descricao"
-                  label="Descrição"
-                  placeholder="Ex: Palete de bebidas"
-                />
-                <FormInput<ItemFormValues>
-                  name="pesoKg"
-                  label="Peso (kg)"
-                  inputMode="decimal"
-                  placeholder="Opcional"
-                />
-                <FormInput<ItemFormValues>
-                  name="volumeM3"
-                  label="Volume (m³)"
-                  inputMode="decimal"
-                  placeholder="Opcional"
-                />
-                <Button type="submit" disabled={enviando}>
-                  {enviando ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Plus className="size-4" />
-                  )}
-                  Adicionar
-                </Button>
-              </form>
-            </FormProvider>
-          </CardContent>
-        </Card>
+                {enviando ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Plus className="size-4" />
+                )}
+                Adicionar
+              </Button>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
 
-        {carregando ? (
-          <Skeleton className="h-48 w-full" />
-        ) : (
-          <div className="h-fit rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Descrição</TableHead>
-                  <TableHead>Peso</TableHead>
-                  <TableHead>Volume</TableHead>
-                  <TableHead className="text-right">SKU</TableHead>
+      {carregando ? (
+        <Skeleton className="h-48 w-full" />
+      ) : (
+        <div className="w-full rounded-lg border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Peso</TableHead>
+                <TableHead>Volume</TableHead>
+                <TableHead className="text-right">SKU</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {itens.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">
+                    {item.descricao}
+                  </TableCell>
+                  <TableCell>
+                    {item.pesoKg ? `${item.pesoKg} kg` : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {item.volumeM3 ? `${item.volumeM3} m³` : "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-right font-mono text-xs">
+                    {item.id.slice(-8).toUpperCase()}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {itens.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium">
-                      {item.descricao}
-                    </TableCell>
-                    <TableCell>
-                      {item.pesoKg ? `${item.pesoKg} kg` : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {item.volumeM3 ? `${item.volumeM3} m³` : "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-right font-mono text-xs">
-                      {item.id.slice(-8).toUpperCase()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }
