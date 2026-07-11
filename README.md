@@ -4,14 +4,25 @@ Front-end do sistema de gestão de Ordens de Venda (OVs), com rastreabilidade,
 visibilidade e governança sobre todo o ciclo de vida operacional:
 `CRIADA → PLANEJADA → AGENDADA → EM_TRANSPORTE → ENTREGUE`.
 
-A API back-end é simulada por um **mock inteligente (MSW)** que inicia
-automaticamente em desenvolvimento — basta rodar o projeto e usar.
+**Não há back-end real neste repositório.** A API é simulada por um **mock
+inteligente (MSW)** que intercepta as requisições no navegador. Para testar
+manualmente ou rodar os testes E2E, o servidor de desenvolvimento precisa estar
+ativo — é ele que carrega o MSW e disponibiliza a “API” mockada.
 
 ---
 
-## 🚀 Como executar
+## 📋 Pré-requisitos
 
-**Pré-requisitos:** Node.js 20+ e npm.
+| Ferramenta     | Versão mínima | Obrigatório para |
+| -------------- | ------------- | ---------------- |
+| Node.js        | 20+           | setup local      |
+| npm            | (incluso)     | setup local      |
+| Docker         | 24+           | opção via Docker |
+| Docker Compose | v2+           | opção via Docker |
+
+---
+
+## 🚀 Configuração local (npm)
 
 ```bash
 # 1. Instalar dependências
@@ -20,12 +31,22 @@ npm install
 # 2. Instalar o navegador do Playwright (obrigatório para testes E2E e git push)
 npm run test:e2e:install
 
-# 3. Subir o ambiente de desenvolvimento (mock inicia automaticamente)
+# 3. Subir o ambiente de desenvolvimento (MSW inicia automaticamente)
 npm run dev
 # → http://localhost:3000
 ```
 
 > O `npm install` também tenta baixar o Chromium via `postinstall`. Se os testes E2E ou o hook de pre-push falharem com _Executable doesn't exist_, rode novamente o passo 2.
+
+### MSW e ausência de back-end real
+
+Em `npm run dev`, o `MockProvider` inicializa o MSW antes da primeira query.
+Todas as telas (cadastros, criação de OV, agendamento, monitoramento) dependem
+desse mock — **não existe servidor de API externo para apontar**. Testes
+manuais no browser e os fluxos E2E só funcionam com o dev server rodando.
+
+Em build de produção local (`npm run build && npm run start`), defina
+`NEXT_PUBLIC_API_MOCKING=enabled` para manter o mock ativo.
 
 ### Scripts disponíveis
 
@@ -35,12 +56,89 @@ npm run dev
 | `npm run build`            | Build de produção                         |
 | `npm run start`            | Servir o build de produção                |
 | `npm run test`             | Testes unitários e de integração (Vitest) |
+| `npm run test:coverage`    | Testes com relatório de cobertura         |
 | `npm run test:watch`       | Testes em modo watch                      |
-| `npm run test:e2e`         | Teste E2E happy path (Playwright)         |
+| `npm run test:e2e`         | Testes E2E (Playwright)                   |
 | `npm run test:e2e:install` | Instala o Chromium usado pelo Playwright  |
 | `npm run lint`             | ESLint (flat config)                      |
 | `npm run typecheck`        | Verificação de tipos (`tsc --noEmit`)     |
 | `npm run format`           | Formatação com Prettier                   |
+
+---
+
+## 🐳 Docker (opcional)
+
+Alternativa ao setup local. O `docker-compose.yml` expõe serviços por perfil:
+
+| Serviço / perfil | Comando                                                     | Uso                                   |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------- |
+| `dev` (padrão)   | `docker compose up`                                         | Desenvolvimento com hot reload e MSW  |
+| `prod`           | `docker compose --profile prod up app`                      | Build de produção com mock habilitado |
+| `test`           | `docker compose --profile test run --rm test`               | Testes unitários/integração           |
+| `test-coverage`  | `docker compose --profile test run --rm test-coverage`      | Cobertura                             |
+| `e2e`            | `docker compose --profile e2e up --abort-on-container-exit` | E2E (sobe `dev` + Playwright)         |
+
+```bash
+# Desenvolvimento (equivalente a npm run dev)
+docker compose up
+
+# Build e execução em modo produção
+docker compose --profile prod up --build app
+
+# Testes unitários dentro do container
+docker compose --profile test run --rm test
+
+# Cobertura
+docker compose --profile test run --rm test-coverage
+
+# E2E: sobe o dev server e executa Playwright no container e2e
+docker compose --profile e2e up --abort-on-container-exit
+```
+
+O serviço `dev` monta o código com volume para hot reload. O serviço `app`
+usa build multi-stage (`standalone`) com `NEXT_PUBLIC_API_MOCKING=enabled`, já que
+não há back-end real. Para E2E via Docker, o Playwright aponta para
+`http://dev:3000` — o dev server precisa estar no ar (o perfil `e2e` faz isso
+automaticamente).
+
+---
+
+## 🧪 Executando testes
+
+### Unitários e integração (Vitest)
+
+Roda no Node com `jsdom` e MSW em memória — **não precisa** do dev server:
+
+```bash
+npm run test
+npm run test:coverage   # relatório em coverage/
+npm run test:watch      # modo interativo
+```
+
+Via Docker: `docker compose --profile test run --rm test`
+
+### E2E (Playwright)
+
+Os testes E2E abrem um browser real contra `http://localhost:3000` e exercitam
+fluxos completos (criar cliente, OV, agendar, avançar status). Como a API só
+existe via MSW no navegador, **o dev server precisa estar rodando**:
+
+```bash
+# Terminal 1
+npm run dev
+
+# Terminal 2
+npm run test:e2e
+```
+
+Se o dev server já estiver ativo, o Playwright reutiliza (`reuseExistingServer`).
+Caso contrário, o `playwright.config.ts` tenta subir `npm run dev` automaticamente.
+
+Via Docker (dev server + Playwright em containers separados):
+
+```bash
+docker compose --profile e2e up --abort-on-container-exit
+```
 
 ---
 

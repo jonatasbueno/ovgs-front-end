@@ -1,0 +1,70 @@
+services:
+  dev:
+    build:
+      context: .
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+
+  app:
+    build:
+      context: .
+      target: production
+    profiles:
+      - prod
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_MOCKING: enabled
+
+  test:
+    build:
+      context: .
+      target: development
+    profiles:
+      - test
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+    environment:
+      NODE_ENV: test
+    command: npm run test
+
+  test-coverage:
+    build:
+      context: .
+      target: development
+    profiles:
+      - test
+    volumes:
+      - .:/app
+      - dev_node_modules:/app/node_modules
+    environment:
+      NODE_ENV: test
+    command: npm run test:coverage
+
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.61.1-jammy
+    profiles:
+      - e2e
+    working_dir: /app
+    depends_on:
+      dev:
+        condition: service_started
+    volumes:
+      - .:/app
+      - e2e_node_modules:/app/node_modules
+    environment:
+      CI: "true"
+      PLAYWRIGHT_BASE_URL: http://dev:3000
+    command: sh -c "npm ci && npm run test:e2e"
+
+volumes:
+  dev_node_modules:
+  e2e_node_modules:
