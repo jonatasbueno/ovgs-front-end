@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   ajustarAgendamentoNaEntrega,
   formatarAgendamentoOrdem,
+  formatarAgendamentoTexto,
   resolverAgendamentoExibicao,
 } from "./ordemVendaSchema";
 
@@ -41,6 +42,18 @@ describe("ajustarAgendamentoNaEntrega", () => {
 });
 
 describe("resolverAgendamentoExibicao", () => {
+  it("mantém agendamento original para status não entregue", () => {
+    const ordem = {
+      status: "AGENDADA" as const,
+      dadosAgendamento: { data: "2026-07-13", janela: "NOITE" as const },
+    };
+
+    expect(resolverAgendamentoExibicao(ordem)).toEqual({
+      data: "2026-07-13",
+      janela: "NOITE",
+    });
+  });
+
   it("usa a data de entrega efetiva para OVs entregues", () => {
     const ordem = {
       status: "ENTREGUE" as const,
@@ -64,5 +77,17 @@ describe("resolverAgendamentoExibicao", () => {
     expect(formatarAgendamentoOrdem(ordem)).toBe(
       "10/07/2026 · Noite (18h–22h)",
     );
+  });
+});
+
+describe("formatarAgendamentoTexto", () => {
+  it("formata com label curta", () => {
+    expect(
+      formatarAgendamentoTexto({ data: "2026-07-15", janela: "MANHA" }, true),
+    ).toBe("15/07/2026 · Manhã");
+  });
+
+  it("retorna traço quando ordem não tem agendamento", () => {
+    expect(formatarAgendamentoOrdem({ status: "CRIADA" })).toBe("—");
   });
 });
